@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mood Weaver — visual synthesizer</title>
+  <meta name="description" content="Interactive 3D visual synthesizer. Touch the sphere, shift the mood." />
+  <meta name="theme-color" content="#0a0a14" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="canvas-container" role="img" aria-label="Mood Weaver: интерактивная 3D-сфера, реагирующая на пресеты и ползунки"></div>
+
+  <div id="fps" aria-live="polite" aria-label="Кадров в секунду">0 FPS</div>
+
+  <div id="app">
+    <header>
+      <h1>Mood Weaver</h1>
+      <p class="subtitle">visual synthesizer</p>
+    </header>
+
+    <div id="controls">
+      <div id="presets" role="group" aria-label="Пресеты настроения">
+        <button class="preset-btn" data-preset="forest" data-key="1" aria-label="Forest — зелёный, медленный">
+          <span class="preset-dot" style="--dot: #22c55e"></span>
+          Forest
+        </button>
+        <button class="preset-btn" data-preset="city" data-key="2" aria-label="City — оранжевый, средний">
+          <span class="preset-dot" style="--dot: #f97316"></span>
+          City
+        </button>
+        <button class="preset-btn" data-preset="space" data-key="3" aria-label="Space — фиолетовый, быстрый">
+          <span class="preset-dot" style="--dot: #8b5cf6"></span>
+          Space
+        </button>
+        <button class="preset-btn" data-preset="cyberpunk" data-key="4" aria-label="Cyberpunk — розовый/циан, глитч">
+          <span class="preset-dot" style="--dot: #ec4899"></span>
+          Cyberpunk
+        </button>
+        <button class="preset-btn" data-preset="ocean" data-key="5" aria-label="Ocean — бирюзовый, глубокий">
+          <span class="preset-dot" style="--dot: #14b8a6"></span>
+          Ocean
+        </button>
+        <button id="random-btn" aria-label="Случайный пресет">Random</button>
+      </div>
+
+      <div id="sliders" role="group" aria-label="Параметры синтезатора">
+        <div class="slider-group">
+          <label for="bass">Bass</label>
+          <div class="slider-row">
+            <div class="slider-track">
+              <input type="range" id="bass" min="0.5" max="2" step="0.01" value="1"
+                     aria-label="Bass — размер сферы" />
+              <span class="slider-tooltip" id="bass-tooltip">1.00</span>
+            </div>
+            <span class="slider-value" id="bass-value">1.00</span>
+          </div>
+        </div>
+        <div class="slider-group">
+          <label for="treble">Treble</label>
+          <div class="slider-row">
+            <div class="slider-track">
+              <input type="range" id="treble" min="0" max="0.02" step="0.001" value="0.005"
+                     aria-label="Treble — скорость вращения" />
+              <span class="slider-tooltip" id="treble-tooltip">0.005</span>
+            </div>
+            <span class="slider-value" id="treble-value">0.005</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="saved-presets">
+        <div class="saved-header">
+          <span class="saved-title">My Presets</span>
+        </div>
+        <div class="saved-save-row">
+          <input type="text" id="saved-name" placeholder="Preset name…" maxlength="24"
+                 aria-label="New preset name" />
+          <button id="saved-save-btn" aria-label="Save current preset">Save</button>
+        </div>
+        <div id="saved-list" role="list" aria-label="Saved presets"></div>
+      </div>
+
+      <div id="controls-footer">
+        <button id="help-btn" aria-label="Keyboard shortcuts and presets">?</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="ui-toggle" aria-label="Show / hide interface">⊙</button>
+  <div id="ui-hint">Press <kbd>U</kbd> to show UI</div>
+
+  <!-- Help overlay -->
+  <div id="help-overlay" class="help-overlay" role="dialog" aria-label="Keyboard shortcuts and presets">
+    <div class="help-panel">
+      <h2>Mood Weaver</h2>
+
+      <div class="help-section">
+        <h3>Presets</h3>
+        <div class="help-row"><kbd>1</kbd> Forest — green, slow</div>
+        <div class="help-row"><kbd>2</kbd> City — orange, medium</div>
+        <div class="help-row"><kbd>3</kbd> Space — purple, fast</div>
+        <div class="help-row"><kbd>4</kbd> Cyberpunk — pink/cyan, glitch</div>
+        <div class="help-row"><kbd>5</kbd> Ocean — teal, deep</div>
+      </div>
+
+      <div class="help-section">
+        <h3>Shortcuts</h3>
+        <div class="help-row"><kbd>R</kbd> Random preset + sliders</div>
+        <div class="help-row"><kbd>F</kbd> Toggle fullscreen</div>
+        <div class="help-row"><kbd>H</kbd> Toggle help</div>
+        <div class="help-row"><kbd>U</kbd> Toggle UI (zen mode)</div>
+        <div class="help-row"><kbd>Esc</kbd> Close help</div>
+      </div>
+
+      <div class="help-section">
+        <h3>Features</h3>
+        <div class="help-row">Audio-reactive particles</div>
+        <div class="help-row">Bloom glow effect</div>
+        <div class="help-row">Stereo spatial panning</div>
+        <div class="help-row">Save/load custom presets</div>
+      </div>
+
+      <button class="help-close" id="help-close" aria-label="Close help">Close</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
