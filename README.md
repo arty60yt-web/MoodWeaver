@@ -1,12 +1,52 @@
 # Mood Weaver
 
-**Interactive 3D visual synthesizer** — real-time generative visuals driven by Web Audio.
+**Интерактивный 3D-визуальный синтезатор** — генеративная графика в реальном времени, управляемая звуком.
 
-Mood Weaver is a browser-based ambient experience: a Fresnel-shaded sphere responds to preset moods while a multi-layer synthesizer generates warm, evolving soundscapes.
+Mood Weaver — это браузерная ambient-среда: сфера с Fresnel-шейдером реагирует на пресеты настроения, а многоголосный синтезатор создаёт тёплые, живые звуковые ландшафты.
 
 ---
 
-## Features
+## Возможности
+
+- **5 пресетов** — Forest, City, Space, Cyberpunk, Ocean — каждый с уникальной цветовой палитрой, формацией частиц и звучанием
+- **Многоголосный синтезатор** — 3 слоя синуса (основной, суб-октава, квинта) с расстроем, фильтром низких частот + LFO, стерео-панорамой, тремоло, задержкой и синтезированной реверберацией
+- **Аудио-реактивные визуалы** — размер частиц, свечение сферы и интенсивность Fresnel пульсируют от аудиоспектра
+- **Bloom (свечение)** — UnrealBloomPass для мягкого свечения сферы и частиц
+- **Zen-режим** — нажмите `U`, чтобы скрыть интерфейс и погрузиться в картинку
+- **Сохранение пресетов** — сохраняйте любимые комбинации Bass/Treble + preset в localStorage
+- **Полноэкранный режим** — `F`
+- **Случайный режим** — `R` рандомит и пресет, и ползунки
+
+## Управление
+
+| Клавиша | Действие |
+|---------|----------|
+| `1`–`5` | Выбрать пресет |
+| `R` | Случайный пресет + ползунки |
+| `U` | Скрыть/показать интерфейс (Zen) |
+| `F` | Полноэкранный режим |
+| `H` | Справка |
+| `Esc` | Закрыть справку |
+
+**Ползунки:**
+- **Bass** — масштаб сферы + частота среза фильтра (яркость lowpass)
+- **Treble** — скорость вращения + общая громкость
+
+## Пресеты
+
+| Пресет | Оттенок | Атмосфера |
+|--------|---------|-----------|
+| Forest | Зелёный (142°) | Медленный, землистый |
+| City | Оранжевый (30°) | Средний, тёплый |
+| Space | Фиолетовый (260°) | Глубокий, парящий |
+| Cyberpunk | Розовый (330°) | Быстрый, глитч, дисковая формация |
+| Ocean | Бирюзовый (185°) | Глубокий, текучий |
+
+---
+
+## Interactive 3D Visual Synthesizer
+
+### Features
 
 - **5 presets** — Forest, City, Space, Cyberpunk, Ocean — each with unique color palettes, particle formations, and audio characteristics
 - **Multi-oscillator synth** — 3 sine layers (main, sub octave, fifth) with detune, lowpass filter + LFO, stereo panner, tremolo, delay, and synthetic reverb
@@ -17,7 +57,7 @@ Mood Weaver is a browser-based ambient experience: a Fresnel-shaded sphere respo
 - **Fullscreen** — toggle with `F`
 - **Random** — randomize both preset and sliders with `R`
 
-## Controls
+### Controls
 
 | Key | Action |
 |-----|--------|
@@ -32,7 +72,7 @@ Mood Weaver is a browser-based ambient experience: a Fresnel-shaded sphere respo
 - **Bass** — sphere scale + filter cutoff (lowpass brightness)
 - **Treble** — rotation speed + master volume
 
-## Presets
+### Presets
 
 | Preset | Hue | Vibe |
 |--------|-----|------|
