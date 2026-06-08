@@ -1,12 +1,23 @@
-# Mood Weaver
-
-**Интерактивный 3D-визуальный синтезатор** — генеративная графика в реальном времени, управляемая звуком.
-
-Mood Weaver — это браузерная ambient-среда: сфера с Fresnel-шейдером реагирует на пресеты настроения, а многоголосный синтезатор создаёт тёплые, живые звуковые ландшафты.
+<p align="center">
+  <a href="#ru">🇷🇺 Русский</a> · <a href="#en">🇬🇧 English</a>
+</p>
 
 ---
 
-## Возможности
+<h1 align="center">Mood Weaver</h1>
+
+<p align="center">
+  <b>Интерактивный 3D-визуальный синтезатор</b><br>
+  Генеративная графика в реальном времени, управляемая звуком.
+</p>
+
+---
+
+<h2 align="center" id="ru">🇷🇺 Русский</h2>
+
+Mood Weaver — это браузерная ambient-среда: сфера с Fresnel-шейдером реагирует на пресеты настроения, а многоголосный синтезатор создаёт тёплые, живые звуковые ландшафты.
+
+### Возможности
 
 - **5 пресетов** — Forest, City, Space, Cyberpunk, Ocean — каждый с уникальной цветовой палитрой, формацией частиц и звучанием
 - **Многоголосный синтезатор** — 3 слоя синуса (основной, суб-октава, квинта) с расстроем, фильтром низких частот + LFO, стерео-панорамой, тремоло, задержкой и синтезированной реверберацией
@@ -17,7 +28,7 @@ Mood Weaver — это браузерная ambient-среда: сфера с Fr
 - **Полноэкранный режим** — `F`
 - **Случайный режим** — `R` рандомит и пресет, и ползунки
 
-## Управление
+### Управление
 
 | Клавиша | Действие |
 |---------|----------|
@@ -32,7 +43,7 @@ Mood Weaver — это браузерная ambient-среда: сфера с Fr
 - **Bass** — масштаб сферы + частота среза фильтра (яркость lowpass)
 - **Treble** — скорость вращения + общая громкость
 
-## Пресеты
+### Пресеты
 
 | Пресет | Оттенок | Атмосфера |
 |--------|---------|-----------|
@@ -44,7 +55,9 @@ Mood Weaver — это браузерная ambient-среда: сфера с Fr
 
 ---
 
-## Interactive 3D Visual Synthesizer
+<h2 align="center" id="en">🇬🇧 English</h2>
+
+Mood Weaver is a browser-based ambient experience: a Fresnel-shaded sphere responds to preset moods while a multi-layer synthesizer generates warm, evolving soundscapes.
 
 ### Features
 
@@ -82,14 +95,20 @@ Mood Weaver — это браузерная ambient-среда: сфера с Fr
 | Cyberpunk | Pink (330°) | Fast, glitchy, disk formation |
 | Ocean | Teal (185°) | Deep, flowing |
 
-## Tech Stack
+---
+
+<h2 align="center">Tech Stack</h2>
+
+<p align="center">
+  <b>Three.js</b> · <b>Web Audio API</b> · <b>Pure HTML/CSS/JS</b>
+</p>
 
 - **Three.js** — 3D rendering, Fresnel ShaderMaterial, EffectComposer + UnrealBloomPass
 - **Web Audio API** — OscillatorNode, AnalyserNode, BiquadFilterNode, StereoPannerNode, ConvolverNode (synthetic reverb), DelayNode
 - **Pure HTML/CSS/JS** — no frameworks, no build tools, works from `file://` or any static server
 - **Glassmorphism UI** — dark theme, HSL-driven accent colors
 
-## How to Run
+<h2 align="center">How to Run</h2>
 
 Open `index.html` in any modern browser.
 
@@ -103,6 +122,6 @@ Then open `http://localhost:8000` in your browser.
 
 > **Note:** Three.js and post-processing libraries are loaded from CDN. An internet connection is required on first load.
 
-## License
+<h2 align="center">License</h2>
 
-MIT
+<p align="center">MIT</p>
