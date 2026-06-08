@@ -32,6 +32,7 @@ const savedSaveBtn = document.getElementById('saved-save-btn');
 const savedList = document.getElementById('saved-list');
 const uiToggle = document.getElementById('ui-toggle');
 const uiHint = document.getElementById('ui-hint');
+const toastEl = document.getElementById('toast');
 
 // ======================== Пресеты ========================
 
@@ -86,6 +87,159 @@ let bass = 1.0;
 let treble = 0.005;
 let entrance = 0;
 
+// Orbit
+let orbitPhi = Math.PI / 2;
+let orbitTheta = 0;
+let orbitDist = 3.8;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+// Geometry morph
+let morphPositions = null;
+let morphTargetPos = null;
+let morphT = 1;
+const MORPH_SPEED = 0.05;
+
+// Particle evolution
+let particleFormation = 'sphere';
+let particleTargets = null;
+let particleMorphT = 1;
+const PARTICLE_MORPH_SPEED = 0.01;
+let lastEvolve = 0;
+const EVOLVE_INTERVAL = 18000;
+const FORMATIONS = ['sphere', 'disk', 'torus', 'cloud'];
+
+// Toast
+let toastTimer = null;
+
+// ======================== Toast ========================
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2500);
+}
+
+// ======================== Morph targets ========================
+
+function generateMorphTarget(name) {
+  const pos = sphere.geometry.attributes.position.array;
+  const count = pos.length / 3;
+  const target = new Float32Array(pos.length);
+
+  if (name === 'sphere' || name === 'forest' || name === 'ocean') {
+    target.set(pos);
+    return target;
+  }
+
+  if (name === 'torus' || name === 'space') {
+    const R = 1.2, r = 0.45;
+    for (let i = 0; i < count; i++) {
+      const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
+      const len = Math.sqrt(x * x + y * y + z * z);
+      const theta = Math.atan2(z, x);
+      const phi = Math.acos(y / len);
+      target[i * 3] = (R + r * Math.cos(phi)) * Math.cos(theta);
+      target[i * 3 + 1] = r * Math.sin(phi);
+      target[i * 3 + 2] = (R + r * Math.cos(phi)) * Math.sin(theta);
+    }
+    return target;
+  }
+
+  if (name === 'spike' || name === 'cyberpunk') {
+    const ico = [];
+    const t = (1 + Math.sqrt(5)) / 2;
+    const raw = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
+      [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
+      [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]];
+    for (const v of raw) {
+      const l = Math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2);
+      ico.push([v[0] / l, v[1] / l, v[2] / l]);
+    }
+    for (let i = 0; i < count; i++) {
+      const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
+      let maxD = -Infinity, best = null;
+      for (const iv of ico) {
+        const d = x * iv[0] + y * iv[1] + z * iv[2];
+        if (d > maxD) { maxD = d; best = iv; }
+      }
+      const push = 1 + 0.2 * maxD;
+      target[i * 3] = x * push;
+      target[i * 3 + 1] = y * push;
+      target[i * 3 + 2] = z * push;
+    }
+    return target;
+  }
+
+  // pinched (city)
+  for (let i = 0; i < count; i++) {
+    const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
+    const pinch = 1 - 0.25 * Math.abs(y);
+    target[i * 3] = x * pinch;
+    target[i * 3 + 1] = y * (1 + 0.15 * (1 - Math.abs(y)));
+    target[i * 3 + 2] = z * pinch;
+  }
+  return target;
+}
+
+function startMorph(name) {
+  const target = generateMorphTarget(name);
+  if (!target) return;
+  const arr = sphere.geometry.attributes.position.array;
+  morphPositions.set(arr);
+  morphTargetPos = target;
+  morphT = 0;
+}
+
+// ======================== Particle evolution ========================
+
+function generateFormationPositions(count, formation) {
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    if (formation === 'disk') {
+      const r = 1.6 + Math.random() * 2.8;
+      const a = Math.random() * Math.PI * 2;
+      const h = (Math.random() - 0.5) * 0.35;
+      pos[i * 3] = r * Math.cos(a);
+      pos[i * 3 + 1] = h;
+      pos[i * 3 + 2] = r * Math.sin(a);
+    } else if (formation === 'torus') {
+      const R2 = 2.2, r2 = 0.8;
+      const a = Math.random() * Math.PI * 2;
+      const b = Math.random() * Math.PI * 2;
+      pos[i * 3] = (R2 + r2 * Math.cos(b)) * Math.cos(a);
+      pos[i * 3 + 1] = r2 * Math.sin(b);
+      pos[i * 3 + 2] = (R2 + r2 * Math.cos(b)) * Math.sin(a);
+    } else if (formation === 'cloud') {
+      const r = 1.6 + Math.random() * 3.5;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const spread = (Math.random() - 0.5) * 1.2;
+      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta) + spread;
+      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.6 + spread * 0.5;
+      pos[i * 3 + 2] = r * Math.cos(phi) + spread;
+    } else {
+      const r = 1.6 + Math.random() * 3.5;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      pos[i * 3 + 2] = r * Math.cos(phi);
+    }
+  }
+  return pos;
+}
+
+function startParticleMorph(formation) {
+  if (!particles) return;
+  const count = particleCount;
+  particleTargets = generateFormationPositions(count, formation);
+  particleMorphT = 0;
+  particleFormation = formation;
+}
+
 // ======================== Three.js — сцена ========================
 
 const scene = new THREE.Scene();
@@ -93,7 +247,6 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   45, container.clientWidth / container.clientHeight, 0.1, 100,
 );
-camera.position.z = 3.8;
 
 let renderer;
 try {
@@ -206,6 +359,9 @@ const sphereMat = new THREE.ShaderMaterial({
 
 const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), sphereMat);
 scene.add(sphere);
+const basePos = sphere.geometry.attributes.position.array;
+morphPositions = new Float32Array(basePos);
+morphPositions.set(basePos);
 
 // ======================== Glow-оболочка ========================
 
@@ -478,8 +634,11 @@ function applyPreset(name) {
   targetParticle.setHSL(p.hue / 360, p.sat / 100, Math.min(lum2, 88) / 100);
 
   if (Math.abs(particleCount - p.particles) > 50) {
-    createParticles(p.particles, p.hue, p.sat, p.lum, p.formation);
+    createParticles(p.particles, p.hue, p.sat, p.lum, 'sphere');
   }
+  startParticleMorph(p.formation);
+
+  startMorph(name);
 
   if (audio.started) changeAudioPreset(name);
 
@@ -566,6 +725,7 @@ function saveCurrentPreset() {
   persistSavedPresets(presets);
   savedName.value = '';
   renderSavedPresets();
+  showToast(`Saved «${name}»`);
 }
 
 function deleteSavedPreset(id) {
@@ -585,6 +745,7 @@ function loadSavedPreset(data) {
   updateTooltip(trebleInput, trebleTooltip, treble);
   applyPreset(data.preset);
   if (audio.started) updateAudio();
+  showToast(`Loaded «${data.name}»`);
 }
 
 function escapeHtml(str) {
@@ -690,6 +851,43 @@ function animate(time) {
   ringMat.color.lerp(targetRing, LERP);
   if (particles) particles.material.color.lerp(targetParticle, LERP);
 
+  // --- Orbit camera ---
+  camera.position.x = orbitDist * Math.sin(orbitPhi) * Math.cos(orbitTheta);
+  camera.position.y = orbitDist * Math.cos(orbitPhi);
+  camera.position.z = orbitDist * Math.sin(orbitPhi) * Math.sin(orbitTheta);
+  camera.lookAt(0, 0, 0);
+
+  // --- Geometry morph ---
+  if (morphTargetPos && morphT < 1) {
+    morphT = Math.min(morphT + MORPH_SPEED, 1);
+    const ease = 1 - (1 - morphT) ** 3;
+    const arr = sphere.geometry.attributes.position.array;
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = morphPositions[i] + (morphTargetPos[i] - morphPositions[i]) * ease;
+    }
+    sphere.geometry.attributes.position.needsUpdate = true;
+    sphere.geometry.computeVertexNormals();
+    if (morphT >= 1) morphPositions.set(arr);
+  }
+
+  // --- Particle morph ---
+  if (particleTargets && particles && particleMorphT < 1) {
+    particleMorphT = Math.min(particleMorphT + PARTICLE_MORPH_SPEED, 1);
+    const arr = particles.geometry.attributes.position.array;
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] += (particleTargets[i] - arr[i]) * 0.04;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+  }
+
+  // --- Evolve timer ---
+  if (time - lastEvolve > EVOLVE_INTERVAL && !isDragging) {
+    lastEvolve = time;
+    const others = FORMATIONS.filter(f => f !== particleFormation);
+    const next = others[Math.floor(Math.random() * others.length)];
+    startParticleMorph(next);
+  }
+
   // --- Пульсация ---
   const puls = 1 + Math.sin(time * 0.0018) * state.pulseAmp;
   const scale = bass * puls;
@@ -763,7 +961,7 @@ function animate(time) {
 presetBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     const name = btn.dataset.preset;
-    if (name) applyPreset(name);
+    if (name) { applyPreset(name); showToast(name.charAt(0).toUpperCase() + name.slice(1)); }
   });
 });
 
@@ -784,6 +982,7 @@ randomBtn.addEventListener('click', () => {
 
   applyPreset(name);
   if (audio.started) updateAudio();
+  showToast('Randomized ✦');
 });
 
 // Bass
@@ -804,6 +1003,36 @@ trebleInput.addEventListener('input', () => {
 
 // Resize
 window.addEventListener('resize', onResize);
+
+// Orbit
+container.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  isDragging = true;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  container.classList.add('grabbing');
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const dx = e.clientX - dragStartX;
+  const dy = e.clientY - dragStartY;
+  orbitTheta -= dx * 0.005;
+  orbitPhi = Math.max(0.1, Math.min(Math.PI - 0.1, orbitPhi + dy * 0.005));
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+});
+
+document.addEventListener('mouseup', () => {
+  if (!isDragging) return;
+  isDragging = false;
+  container.classList.remove('grabbing');
+});
+
+container.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  orbitDist = Math.max(1.5, Math.min(10, orbitDist + e.deltaY * 0.005));
+}, { passive: false });
 
 // Хоткеи
 document.addEventListener('keydown', (e) => {

@@ -873,6 +873,49 @@ header .subtitle { animation-delay: 0.15s; }
   background: #0a0a14;
 }
 
+/* ----- Toast ----- */
+#toast {
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  z-index: 300;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  background: hsla(0, 0%, 0%, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 18px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+  white-space: nowrap;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (max-width: 480px) {
+  #toast {
+    bottom: 66px;
+    font-size: 0.72rem;
+    padding: 8px 14px;
+  }
+}
+
+/* ----- Orbit cursor ----- */
+#canvas-container {
+  cursor: grab;
+}
+
+#canvas-container.grabbing {
+  cursor: grabbing;
+}
+
 /* ----- Saved Presets ----- */
 #saved-presets {
   margin-top: 16px;
